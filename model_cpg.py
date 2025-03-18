@@ -66,6 +66,10 @@ class Model_CPG(CICDModel):
 
         self.reservoir.global_data.update({'satnum': self.reservoir.satnum}) #makes sure that mesh also is updated and exports satnum
 
+        # Retrieve SATNUM (facies ID) from the reservoir and store op_num values belonging to different facies
+        satnum_arr = np.array(self.reservoir.satnum, copy=False)  # don't use -1, because you get interpolation error since 0 (inactive) minus 1 gives -1, which it doesn't understand
+        self.reservoir.mesh.op_num = index_vector([int(x) for x in satnum_arr] + [0, 0])
+
         # store modified arrrays (with burden layers) for output to grdecl
         self.reservoir.input_arrays = arrays
 

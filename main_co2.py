@@ -62,9 +62,9 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     m.save_data_to_h5(kind = 'solution')
     m.set_well_controls()
 
-    # Retrieve SATNUM (facies ID) from the reservoir
-    satnum_array = np.array(m.reservoir.satnum, copy=False)  #don't use -1, because you get interpolation error since 0 (inactive) minus 1 gives -1, which it doesn't understand
-    m.reservoir.mesh.op_num = index_vector([int(x) for x in satnum_array] + [1, 1])
+    # # Retrieve SATNUM (facies ID) from the reservoir
+    # satnum_array = np.array(m.reservoir.satnum, copy=False)  #don't use -1, because you get interpolation error since 0 (inactive) minus 1 gives -1, which it doesn't understand
+    # m.reservoir.mesh.op_num = index_vector([int(x) for x in satnum_array] + [0, 0])
 
 
     # m.reservoir.save_grdecl(m.get_arrays(ith_step=0), os.path.join(out_dir, 'res_init')) #NEW not sure if it works for CCS #doesn't work for test case
