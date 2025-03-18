@@ -1,8 +1,8 @@
 import numpy as np
 import os
-from Darts_Packages_Adjusted.cpg_reservoir_adjusted import CPG_Reservoir, save_array, read_arrays, check_arrays, make_burden_layers, make_full_cube
-#from darts.reservoirs.cpg_reservoir import CPG_Reservoir, save_array, read_arrays, check_arrays, make_burden_layers, make_full_cube
-#from darts.reservoirs.cpg_reservoir import CPG_Reservoir, save_array, read_arrays, check_arrays, make_burden_layers, make_full_cube
+
+from darts.reservoirs.cpg_reservoir import CPG_Reservoir, save_array, read_arrays, check_arrays, make_burden_layers, make_full_cube
+
 from darts.discretizer import load_single_float_keyword
 from darts.engines import value_vector
 

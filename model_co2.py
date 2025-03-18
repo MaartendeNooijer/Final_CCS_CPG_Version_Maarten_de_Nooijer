@@ -142,6 +142,9 @@ class ModelCCS(Model_CPG):
         #m.reservoir.mesh.op_num[:16000] = satnum_array # Get SATNUM array
 
         facies_rel_perm = { #based on fluidflower paper
+
+                # **Inactive Cells**
+                #0: Corey(nw=0, ng=0, swc=0, sgc=0, krwe=0, krge=0, labda=0, p_entry=0, pcmax=0, c2=0), #NEW, doesn't work because of ZeroDivisionError: division by zero
                 # **Channel Sand (Facies 1)**
                 0: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0.025602, pcmax=300, c2=1.5),
                 # **Overbank Sand (Facies 2)**
@@ -270,7 +273,7 @@ class ModelCCS(Model_CPG):
         self.idata.obl.min_z = self.idata.obl.zero
         self.idata.obl.max_z = 1 - self.idata.obl.zero
         self.idata.obl.cache = False
-        self.idata.obl.thermal = True
+        self.idata.obl.thermal = True #This sets case to non-isothermal
 
     def set_initial_conditions(self):
         self.temperature_initial_ = 273.15 + 76.85  # K

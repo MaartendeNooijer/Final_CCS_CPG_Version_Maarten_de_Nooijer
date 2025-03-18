@@ -35,19 +35,19 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
 
 
 
-    if physics_type == 'geothermal':
-        m = ModelGeothermal(iapws_physics=True)
-    elif physics_type == 'deadoil':
-        m = ModelDeadOil()
-    elif physics_type == 'ccs':
-        m = ModelCCS()
-    else:
-        print('Error: wrong physics specified:', physics_type)
-        exit(1)
+    # if physics_type == 'geothermal':
+    #     m = ModelGeothermal(iapws_physics=True)
+    # elif physics_type == 'deadoil':
+    #     m = ModelDeadOil()
+    # elif physics_type == 'ccs':
+    #     m = ModelCCS()
+    # else:
+    #     print('Error: wrong physics specified:', physics_type)
+    #     exit(1)
 
     # physics_type = 'ccs'
     #
-    # m = ModelCCS()
+    m = ModelCCS()
     #
     m.physics_type = physics_type
 
@@ -63,8 +63,8 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     m.set_well_controls()
 
     # Retrieve SATNUM (facies ID) from the reservoir
-    satnum_array = np.array(m.reservoir.satnum, copy=False) - 1 #
-    m.reservoir.mesh.op_num = index_vector([int(x) for x in satnum_array] + [0, 0])
+    satnum_array = np.array(m.reservoir.satnum, copy=False)  #don't use -1, because you get interpolation error since 0 (inactive) minus 1 gives -1, which it doesn't understand
+    m.reservoir.mesh.op_num = index_vector([int(x) for x in satnum_array] + [1, 1])
 
 
     # m.reservoir.save_grdecl(m.get_arrays(ith_step=0), os.path.join(out_dir, 'res_init')) #NEW not sure if it works for CCS #doesn't work for test case
