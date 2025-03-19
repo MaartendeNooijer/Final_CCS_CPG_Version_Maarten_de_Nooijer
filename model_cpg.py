@@ -8,7 +8,8 @@ from darts.engines import value_vector
 
 from darts.tools.gen_cpg_grid import gen_cpg_grid
 
-from darts.models.cicd_model import CICDModel
+#from darts.models.cicd_model import CICDModel Old, but made change
+from Adjusted_Darts_Files.cicd_model import CICDModel #NEW
 
 from darts.engines import value_vector, index_vector
 

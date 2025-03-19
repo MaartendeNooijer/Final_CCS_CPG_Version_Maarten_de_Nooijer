@@ -211,7 +211,8 @@ class ModelCCS(Model_CPG):
             property_container.output_props = {"satA": lambda ii = i: self.physics.property_containers[ii].sat[0],
                                                "satV": lambda ii = i: self.physics.property_containers[ii].sat[1],
                                                "xCO2": lambda ii = i: self.physics.property_containers[ii].x[0, 1],
-                                               "yH2O": lambda ii = i: self.physics.property_containers[ii].x[1, 0]} #NEW
+                                               "yH2O": lambda ii = i: self.physics.property_containers[ii].x[1, 0]}
+                                               #"pressure": lambda ii = i: self.physics.property_containers[ii].pressure[0]} #NEW, let's try and see if it works
 
 
         return
@@ -226,7 +227,7 @@ class ModelCCS(Model_CPG):
         ev_props = self.physics.property_operators[next(iter(self.physics.property_operators))].props_name
         # If output_properties is None, all variables and properties from property_operators will be passed
         props_names = list(ev_props)
-        props_names = props_names + ['pressure', 'temperature']
+        props_names = props_names + ['pressure', 'temperature'] #this worked correctly first, but not anymore (Looks like it has to do with the regions)
 
         # print(props_names)#NEW
 

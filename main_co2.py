@@ -35,27 +35,20 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
 
 
 
-    # if physics_type == 'geothermal':
-    #     m = ModelGeothermal(iapws_physics=True)
-    # elif physics_type == 'deadoil':
-    #     m = ModelDeadOil()
-    # elif physics_type == 'ccs':
-    #     m = ModelCCS()
-    # else:
-    #     print('Error: wrong physics specified:', physics_type)
-    #     exit(1)
-
-    # physics_type = 'ccs'
-    #
+    #Assing CCS Model
     m = ModelCCS()
-    #
+
+    #Assign CCS Physics
     m.physics_type = physics_type
 
+    #Load input data
     m.set_input_data(case=case)
 
+    #Initialize reservoir and properties
     m.init_reservoir()
 
-    # init_reservoir.reservoir.mesh.op_num
+    #Check if op_num correctly assigned
+    #print(m.reservoir.mesh.op_num)
 
     m.init(output_folder=out_dir, platform=platform)
     #m.reservoir.mesh.init_grav_coef(0)
@@ -84,7 +77,7 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
         # read h5 file and write vtk
         m.reservoir.create_vtk_wells(output_directory=out_dir)
         for ith_step in range(len(m.idata.sim.time_steps)):
-            m.output_to_vtk(ith_step=ith_step)
+            m.output_to_vtk(ith_step=ith_step) #Go to this function in darts_model.py and add props_names = props_names + ['pressure', 'temperature'] after line 863 to add pressure and temperature
 
     def add_columns_time_data(time_data):
         molar_mass_co2 = 44.01 #kg/kmol
