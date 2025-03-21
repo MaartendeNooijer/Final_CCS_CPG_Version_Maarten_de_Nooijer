@@ -1,7 +1,10 @@
 import numpy as np
 import os
 
+#Original
 from darts.reservoirs.cpg_reservoir import CPG_Reservoir, save_array, read_arrays, check_arrays, make_burden_layers, make_full_cube
+#NEW
+#from Adjusted_Darts_Files.cpg_reservoir import CPG_Reservoir, save_array, read_arrays, check_arrays, make_burden_layers, make_full_cube
 
 from darts.discretizer import load_single_float_keyword
 from darts.engines import value_vector
@@ -57,6 +60,7 @@ class Model_CPG(CICDModel):
         self.reservoir = CPG_Reservoir(self.timer, arrays, faultfile=self.idata.faultfile, minpv=self.idata.geom.minpv) #NEW #was self.reservoir = CPG_Reservoir(self.timer, arrays, minpv=self.idata.geom.minpv)
         self.reservoir.discretize()
 
+        #beginning of deactivation to test if I can appropriately store satnum and opnum in cpg_reservoir_adjust.py file instead of here
         # helps reading in satnum values from the properties file and store it
         from darts.discretizer import index_vector as index_vector_discr, load_single_int_keyword
         satnum_cpp = index_vector_discr()  # self.discr_mesh.coord
@@ -65,11 +69,20 @@ class Model_CPG(CICDModel):
 
         self.reservoir.satnum = arrays['SATNUM']
 
-        self.reservoir.global_data.update({'satnum': self.reservoir.satnum}) #makes sure that mesh also is updated and exports satnum
+        #self.reservoir.satnum[:] = 1 #activate when only one region needed
+
+        self.reservoir.op_num = self.reservoir.satnum #NEW, not sure if this is correct
 
         # Retrieve SATNUM (facies ID) from the reservoir and store op_num values belonging to different facies
-        satnum_arr = np.array(self.reservoir.satnum, copy=False)  # don't use -1, because you get interpolation error since 0 (inactive) minus 1 gives -1, which it doesn't understand
-        self.reservoir.mesh.op_num = index_vector([int(x) for x in satnum_arr] + [0, 0])
+        satnum_arr = np.array(self.reservoir.satnum,
+                              copy=False)  # don't use -1, because you get interpolation error since 0 (inactive) minus 1 gives -1, which it doesn't understand
+
+        self.reservoir.mesh.op_num = index_vector([int(x) for x in satnum_arr] + [0, 0]) #Deactivate this part to see of mesh.op_num is created self
+
+        #Update global_data for satnum and op_num  #NEW, update satnum correct, not sure about op_num
+        self.reservoir.global_data.update({'satnum': self.reservoir.satnum,
+                                           'op_num': self.reservoir.op_num}) #makes sure that mesh also is updated and exports satnum
+        #end of deactivation
 
         # store modified arrrays (with burden layers) for output to grdecl
         self.reservoir.input_arrays = arrays
@@ -101,7 +114,6 @@ class Model_CPG(CICDModel):
         self.reservoir.hcap[mask_shale] = self.idata.rock.hcap_shale
         self.reservoir.hcap[mask_sand] = self.idata.rock.hcap_sand
 
-
         # add hcap and rcond to be saved into mesh.vtu
         l2g = np.array(self.reservoir.discr_mesh.local_to_global, copy=False)
         g2l = np.array(self.reservoir.discr_mesh.global_to_local, copy=False)
@@ -125,6 +137,7 @@ class Model_CPG(CICDModel):
 
     def set_wells(self):
         # read perforation data from a file
+        self.well_cells = [] #NEW for RHS function
         if hasattr(self.idata, 'schfile'):
             # apply to the reservoir; add wells and perforations, 1-based indices
             for wname, wdata in self.idata.well_data.wells.items():
@@ -133,6 +146,7 @@ class Model_CPG(CICDModel):
                     perf = perf_tuple[1]
                     # adjust to account for added overburden layers
                     perf_ijk_new = (perf.loc_ijk[0], perf.loc_ijk[1], perf.loc_ijk[2] + self.idata.geom.burden_layers)
+                    self.well_cells.append(perf_ijk_new) #NEW, for RHS function
                     self.reservoir.add_perforation(wname,
                                                    cell_index=perf_ijk_new,
                                                    well_index=perf.well_index, well_indexD=perf.well_indexD,

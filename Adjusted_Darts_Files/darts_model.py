@@ -336,7 +336,7 @@ class DartsModel:
         """
         self.op_list = [self.physics.acc_flux_itor[region] for region in self.physics.regions] + [self.physics.acc_flux_w_itor]
         self.op_num = np.array(self.reservoir.mesh.op_num, copy=False)
-        self.op_num[self.reservoir.mesh.n_res_blocks:] = len(self.op_list) - 1
+        self.op_num[self.reservoir.mesh.n_res_blocks:] = len(self.op_list) - 1 #Original #0 #NEW #len(self.op_list) - 1 #Try to set this to zero
 
     def set_sim_params(self, first_ts: float = None, mult_ts: float = None, max_ts: float = None, runtime: float = 1000,
                        tol_newton: float = None, tol_linear: float = None, it_newton: int = None, it_linear: int = None,

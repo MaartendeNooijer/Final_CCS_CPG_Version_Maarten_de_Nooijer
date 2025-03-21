@@ -33,7 +33,7 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     if redirect_log:
         log_stream = redirect_all_output(log_filename)
 
-
+    redirect_darts_output('run_n.log')
 
     #Assing CCS Model
     m = ModelCCS()
@@ -54,13 +54,6 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     #m.reservoir.mesh.init_grav_coef(0)
     m.save_data_to_h5(kind = 'solution')
     m.set_well_controls()
-
-    # # Retrieve SATNUM (facies ID) from the reservoir
-    # satnum_array = np.array(m.reservoir.satnum, copy=False)  #don't use -1, because you get interpolation error since 0 (inactive) minus 1 gives -1, which it doesn't understand
-    # m.reservoir.mesh.op_num = index_vector([int(x) for x in satnum_array] + [0, 0])
-
-
-    # m.reservoir.save_grdecl(m.get_arrays(ith_step=0), os.path.join(out_dir, 'res_init')) #NEW not sure if it works for CCS #doesn't work for test case
 
     ret = m.run_simulation()
     if ret != 0:
@@ -253,9 +246,8 @@ if __name__ == '__main__':
     # cases_list += ["G1_TS3_FM3_50x50x5"]
 
     well_controls = []
-    well_controls += ['wrate']
-    #well_controls += ['wbhp'] #slower, but this is the one we are going to use
-    #well_controls += ['wperiodic']
+    #well_controls += ['wrate']
+    well_controls += ['wbhp'] #slower, but this is the one we are going to use
 
     for physics_type in physics_list:
         for case_geom in cases_list:
