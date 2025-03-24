@@ -51,31 +51,6 @@ class Corey:
                     param = 0
                 setattr(self, attr, param)
 
-class AlternativeContainer(PropertyContainer):
-    def run_flash(self, pressure, temperature, zc):
-        # Normalize fluid compositions
-        zc_norm = zc if not self.ns else zc[:self.nc_fl] / (1. - np.sum(zc[self.nc_fl:]))
-
-        # Evaluates flash, then uses getter for nu and x - for compatibility with DARTS-flash
-        error_output = self.flash_ev.evaluate(pressure, temperature, zc_norm)
-        flash_results = self.flash_ev.get_flash_results()
-        self.nu = np.array(flash_results.nu)
-        try:
-            self.x = np.array(flash_results.X).reshape(self.np_fl, self.nc_fl)
-        except ValueError as e:
-            print(e.args[0], pressure, temperature, zc)
-            error_output += 1
-
-        # Set present phase idxs
-        ph = np.array([j for j in range(self.np_fl) if self.nu[j] > 0], dtype=int) #NEW
-        #h = np.array([j for j in range(self.np_fl) if self.nu[j] > 0]) #Old
-
-        if ph.size == 1:
-            self.x[ph[0]] = zc_norm
-
-        return ph
-
-
 class ModelCCS(Model_CPG):
     def __init__(self):
         self.zero = 1e-10
@@ -83,31 +58,27 @@ class ModelCCS(Model_CPG):
 
     def set_physics(self): #NEW
         """Assign physical properties, including relative permeability, based on facies (SATNUM)."""
-
-        # Define components and phases
+        #Code used in SPE11b
+        """Physical properties"""
+        # Fluid components, ions and solid
         components = ["H2O", "CO2"]
-        phases = ["Aq", "V"]
+        phases = ["V", "Aq"]
         comp_data = CompData(components, setprops=True)
 
-        # Define Equations of State (EOS) for CO2 and H2O
-        pr = CubicEoS(comp_data, CubicEoS.PR)
-        aq = AQEoS(comp_data, AQEoS.Ziabakhsh2012)
-        flash_params = FlashParams(comp_data)
-        flash_params.add_eos("PR", pr)
-        flash_params.add_eos("AQ", aq)
-        flash_params.eos_order = ["AQ", "PR"]
+        #nc = len(components)
 
-        facies_rel_perm = { #based on fluidflower paper
-                    # **Inactive Cells** ##NEW, values don't mind since blocks are inactive anyway
-                    0: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=2, pcmax=300,c2=1.5), #p_entry=0.025602
-                    # **Channel Sand (Facies 1)**
-                    1: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=2, pcmax=300, c2=1.5), #, #p_entry=0.025602
-                    # **Overbank Sand (Facies 2)**
-                    2: Corey(nw=1.5, ng=1.5, swc=0.12, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=3, pcmax=300, c2=1.5), #p_entry=0.038706
-                    # **Shale (Facies 3)**
-                    3: Corey(nw=1.5, ng=1.5, swc=0.32, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=4, pcmax=300, c2=1.5),}
-                    #Wells
-                    #4: Corey(nw=1.5, ng=1.5, swc=0.32, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0.1, pcmax=300, c2=1.5)} #NEW, oiginal p_entry=1.935314
+        flash_params = FlashParams(comp_data)
+
+        # EoS-related parameters
+        flash_params.add_eos("PR", CubicEoS(comp_data, CubicEoS.PR))
+        flash_params.add_eos("AQ", AQEoS(comp_data, {AQEoS.CompType.water: AQEoS.Jager2003,
+                                                     AQEoS.CompType.solute: AQEoS.Ziabakhsh2012,
+                                                     AQEoS.CompType.ion: AQEoS.Jager2003
+                                                     }))
+        pr = flash_params.eos_params["PR"].eos
+        aq = flash_params.eos_params["AQ"].eos
+
+        flash_params.eos_order = ["PR", "AQ"]
 
         # Initialize physics model
         self.physics = Compositional(
@@ -125,62 +96,55 @@ class ModelCCS(Model_CPG):
             cache=self.idata.obl.cache
         )
 
-        temperature = None #non-isothermal
+        self.physics.n_axes_points[0] = 101  # sets OBL points for pressure, From SPE11b
+
+        temperature = None  # if None, then thermal=True
+
+        facies_rel_perm = {  # based on fluidflower paper
+            # # **Wells** ##NEW, values don't mind
+            0: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0, pcmax=0.1, c2=1.5),
+            # **Channel Sand (Facies 1)**
+            1: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0.025602, pcmax=300, c2=1.5),  #p_entry=0.025602
+            # **Overbank Sand (Facies 2)**
+            2: Corey(nw=1.5, ng=1.5, swc=0.12, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0.038706, pcmax=300, c2=1.5),  # p_entry=0.038706
+            # **Shale (Facies 3)**
+            3: Corey(nw=1.5, ng=1.5, swc=0.32, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=1.935314, pcmax=300, c2=1.5)}  # p_entry=1.935314
 
         # Assign properties per facies using `add_property_region`
-        for i, (facies, corey_params) in enumerate(facies_rel_perm.items()): #NEW
+        for i, (region, corey_params) in enumerate(facies_rel_perm.items()): #NEW
 
             #Original
-            # property_container = PropertyContainer(phases_name=phases, components_name=components,Mw=comp_data.Mw[:2], #NEW, was property_container = PropertyContainer(phases_name=phases, components_name=components,Mw=comp_data.Mw,
-            #                                        temperature=temperature, min_z=self.zero/10)
-            # #NEW
-            property_container = AlternativeContainer(phases_name=phases, components_name=components,Mw=comp_data.Mw[:2], #NEW, was property_container = PropertyContainer(phases_name=phases, components_name=components,Mw=comp_data.Mw,
+            property_container = PropertyContainer(phases_name=phases, components_name=components,Mw=comp_data.Mw[:2], #NEW, was property_container = PropertyContainer(phases_name=phases, components_name=components,Mw=comp_data.Mw,
                                                    temperature=temperature, min_z=self.zero/10)
 
-            # Assign phase behavior properties
-            property_container.flash_ev = NegativeFlash(flash_params, ["AQ", "PR"], [InitialGuess.Henry_AV]) #NEW, was property_container.flash_ev = NegativeFlash(flash_params, ["AQ", "PR"], [InitialGuess.Henry_AV])
+            property_container.flash_ev = NegativeFlash(flash_params, ["PR", "AQ"], [InitialGuess.Henry_VA])
 
-            property_container.density_ev = dict([('V', EoSDensity(eos=pr, Mw=comp_data.Mw[:2])), #Other version just has Mw=comp_data.Mw
-                                                  ('Aq', Garcia2001(components)), ]) # NEW, was property_container.density_ev = {'V': EoSDensity(pr, comp_data.Mw),'Aq': Garcia2001(components)}
-
+            property_container.density_ev = dict([('V', EoSDensity(eos=pr, Mw=comp_data.Mw[:2])),
+                                                  ('Aq', Garcia2001(components)), ])
 
             property_container.viscosity_ev = dict([('V', Fenghour1998()),
-                                                    ('Aq', Islam2012(components)), ]) #NEW, was property_container.viscosity_ev = {'V': Fenghour1998(), 'Aq': Islam2012(components)}
+                                                    ('Aq', Islam2012(components)), ])
+
+            property_container.enthalpy_ev = dict([('V', EoSEnthalpy(eos=pr)),('Aq', EoSEnthalpy(eos=aq)), ])
 
 
-            #Original:
-            property_container.enthalpy_ev = {'V': EoSEnthalpy(pr),'Aq': EoSEnthalpy(aq)}
-
-            property_container.conductivity_ev = {'V': ConstFunc(10.0), 'Aq': ConstFunc(180.0)}
+            property_container.conductivity_ev = dict([('V', ConstFunc(8.4)),('Aq', ConstFunc(170.)), ])
 
 
-            # Assign relative permeability and capillary pressure
-            property_container.rel_perm_ev = dict([('V', ModBrooksCorey(corey_params, 'V')),
-                                                   ('Aq', ModBrooksCorey(corey_params, 'Aq'))]) #NEW
+            property_container.rel_perm_ev = dict([('V', ModBrooksCorey(corey_params, 'V')),  # interesting
+                                                   ('Aq', ModBrooksCorey(corey_params, 'Aq'))])  # interesting
 
-            # ##was part of the original code initial, changed it to regions => needs to be activated when 1 region.
-            # property_container.rel_perm_ev = dict([('V', PhaseRelPerm("gas")),('Aq', PhaseRelPerm("oil"))])
+            property_container.capillary_pressure_ev = CapillaryPressure(corey_params)  # interesting
 
-            #Comment out, slows down simulations significantly
-            property_container.capillary_pressure_ev = ModCapillaryPressure(corey_params) #this line makes the code drastically slower
+            self.physics.add_property_region(property_container, i)  # interesting
 
-            property_container.output_props = {"satA": lambda ii=i: self.physics.property_containers[ii].sat[0],
-                                               "satV": lambda ii=i: self.physics.property_containers[ii].sat[1],
-                                               "xCO2": lambda ii=i: self.physics.property_containers[ii].x[0, 1],
-                                               "xH2O": lambda ii=i: self.physics.property_containers[ii].x[0, 0], #NEW
-                                               "yH2O": lambda ii=i: self.physics.property_containers[ii].x[1, 0],
-                                               "yCO2": lambda ii=i: self.physics.property_containers[ii].x[1, 1],#} #NEW
-                                               "Pc": lambda ii=i: self.physics.property_containers[ii].pc[1]}  # ,#}
-
-
-            self.physics.add_property_region(property_container, i)
-            #self.physics.property_containers[0].x = np.array([[1, 0],[0,0]]) try to force region 0 to have comp [1,0]
-
-        print(f"DEBUG: self.x = {self.physics.property_containers[0].x}, type: {type(self.physics.property_containers[0].x)}")
-
-        print("Type of x before assignment:", type(self.physics.property_containers[0].x))
-
-        #self.physics.property_containers[0].x = np.array([1, 0])
+            property_container.output_props = {"satV": lambda ii=i: self.physics.property_containers[ii].sat[0],
+                                               "satA": lambda ii=i: self.physics.property_containers[ii].sat[1],
+                                               "xCO2": lambda ii=i: self.physics.property_containers[ii].x[1, 1],
+                                               "yCO2": lambda ii=i: self.physics.property_containers[ii].x[0, 1],
+                                               "xH20": lambda ii=i: self.physics.property_containers[ii].x[1, 0],
+                                               "yH20": lambda ii=i: self.physics.property_containers[ii].x[0, 0],
+                                               "enthV": lambda ii=i: self.physics.property_containers[ii].enthalpy[0]}
 
         return
 
@@ -192,15 +156,43 @@ class ModelCCS(Model_CPG):
         ev_props = self.physics.property_operators[next(iter(self.physics.property_operators))].props_name
         # If output_properties is None, all variables and properties from property_operators will be passed
         props_names = list(ev_props)
-        props_names = props_names #+ ['pressure', 'temperature'] #this worked correctly first, but not anymore (Looks like it has to do with the regions)
-
-        # print(props_names)#NEW
+        props_names = props_names
 
         timesteps, property_array = self.output_properties(output_properties=props_names, timestep=ith_step)
 
-        #print(property_array) #NEW
-
         return property_array
+
+    def get_arrays_gredcl(self, ith_step):
+        '''
+        :return: dictionary of current unknown arrays (p, T)
+        '''
+        # Find index of properties to output
+        ev_props = self.physics.property_operators[next(iter(self.physics.property_operators))].props_name
+        # If output_properties is None, all variables and properties from property_operators will be passed
+        props_names = list(ev_props)
+        props_names = props_names
+
+        timesteps, property_array = self.output_properties(output_properties=props_names, timestep=ith_step)
+
+        # Assume these are your values
+        specgrid = self.reservoir.dims
+        coord = self.reservoir.coord  # Should be a NumPy array of shape (4056,)
+        zcorn = self.reservoir.zcorn  # Should be a NumPy array of shape (200000,)
+
+        from collections import OrderedDict
+
+        # Create a new ordered dict, starting with dims, coord, zcorn
+        ordered_property_array = OrderedDict()
+
+        ordered_property_array['SPECGRID'] = specgrid
+        ordered_property_array['COORD'] = coord
+        ordered_property_array['ZCORN'] = zcorn
+
+        # Add the rest of your properties from the original dict
+        for key, value in property_array.items():
+            ordered_property_array[key] = value
+
+        return ordered_property_array
 
     def set_input_data(self, case=''):
         self.idata = InputData(type_hydr='thermal', type_mech='none', init_type='uniform')
@@ -221,16 +213,14 @@ class ModelCCS(Model_CPG):
         kg_to_mol = 44.01 #kg/kmol
         rate_kmol_day = rate_kg_day/kg_to_mol
 
-        #print('Whb =', 'wbhp' in case)
-
         if 'wbhp' in case:
             print("The string 'wbhp' is found in case!")
             for w in wells:
-                wdata.add_inj_bhp_control(name=w, bhp=250, comp_index=1, temperature=300)  # kmol/day | bars | K
+                wdata.add_inj_bhp_control(name=w, bhp=200, comp_index=1, temperature=300)  # kmol/day | bars | K
                 #wdata.add_prd_rate_control(time=10 * y2d, name=w, rate=0., comp_index=0, bhp_constraint=70)  # STOP WELL
         elif 'wrate' in case:
             for w in wells:
-                wdata.add_inj_rate_control(name=w, rate=rate_kmol_day, comp_index=1, bhp_constraint=250, temperature=300) #rate=5e5/8 is approximately 1 Mt per year #was rate = 6e6 # kmol/day | bars | K
+                wdata.add_inj_rate_control(name=w, rate=rate_kmol_day, comp_index=1, bhp_constraint=200, temperature=300) #rate=5e5/8 is approximately 1 Mt per year #was rate = 6e6 # kmol/day | bars | K
                 #wdata.add_prd_rate_control(time=10 * y2d, name=w, rate=0., comp_index=0, bhp_constraint=70)  # STOP WELL
 
         self.idata.obl.n_points = 1000
@@ -313,6 +303,7 @@ class ModelCCS(Model_CPG):
             if verbose and w.constraint is not None and 'rate' in str(type(w.control)):
                 print('A constraint for the well ' + w.name + ' is not initialized!')
 
+
 class ModBrooksCorey:
     def __init__(self, corey, phase):
 
@@ -347,29 +338,52 @@ class ModBrooksCorey:
 
         return k_r
 
-class ModCapillaryPressure:
+class CapillaryPressure:
     def __init__(self, corey):
+        self.nph = 2
         self.swc = corey.swc
         self.p_entry = corey.p_entry
         self.labda = corey.labda
-        # self.labda = 3
-        self.eps = 1e-10
-        self.pcmax = corey.pcmax
-        self.c2 = corey.c2
+        self.eps = 1e-3
 
     def evaluate(self, sat):
-        sat_w = sat[0] #was sat[1] but this doesn't work since sat_w should be sat[0], this is taken from SPE11b
-        # sat_w = sat
-        Se = (sat_w - self.swc)/(1 - self.swc)
-        if Se < self.eps:
-            Se = self.eps
-        # pc = self.p_entry * self.eps ** (1/self.labda) * Se ** (-1/self.labda)  # for p_entry to non-wetting phase
-        pc_b = self.p_entry * Se ** (-1/self.c2) # basic capillary pressure
-        pc = self.pcmax * erf((pc_b * np.sqrt(np.pi)) / (self.pcmax * 2)) # smoothened capillary pressure
-        # if Se > 1 - self.eps:
-        #     pc = 0
+        '''
+        default evaluator of capillary pressure Pc based on pow
+        :param sat: saturation
+        :return: Pc
+        '''
+        if self.nph > 1:
+            Se = (sat[1] - self.swc)/(1 - self.swc) #Here SAT[1], since first V, then AQ (propertycontainer) #Was Sat[0] for other script, but most likely should be sat[1] here
+            if Se < self.eps:
+                Se = self.eps
+            pc = self.p_entry * Se ** (-1/self.labda)
 
-        pc = self.p_entry
-        Pc = np.array([0, pc], dtype=object)  # V, Aq
-        return Pc
+            Pc = np.zeros(self.nph, dtype=object)
+            Pc[1] = pc #Shouldn't this be Pc[0]?
+        else:
+            Pc = [0.0]
+        return Pc #V, Aq
+
+class AlternativeContainer(PropertyContainer):
+    def run_flash(self, pressure, temperature, zc):
+        # Normalize fluid compositions
+        zc_norm = zc if not self.ns else zc[:self.nc_fl] / (1. - np.sum(zc[self.nc_fl:]))
+
+        # Evaluates flash, then uses getter for nu and x - for compatibility with DARTS-flash
+        error_output = self.flash_ev.evaluate(pressure, temperature, zc_norm)
+        flash_results = self.flash_ev.get_flash_results()
+        self.nu = np.array(flash_results.nu)
+        try:
+            self.x = np.array(flash_results.X).reshape(self.np_fl, self.nc_fl)
+        except ValueError as e:
+            print(e.args[0], pressure, temperature, zc)
+            error_output += 1
+
+        # Set present phase idxs
+        ph = np.array([j for j in range(self.np_fl) if self.nu[j] > 0], dtype=int)
+
+        if ph.size == 1:
+            self.x[ph[0]] = zc_norm
+
+        return ph
 

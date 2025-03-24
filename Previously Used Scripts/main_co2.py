@@ -1,8 +1,19 @@
-import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import time
+import os, sys
+from darts.engines import value_vector, index_vector
+from darts.engines import redirect_darts_output, value_vector
 from darts.tools.plot_darts import *
-from darts.tools.logging import redirect_all_output
+from darts.tools.logging import redirect_all_output, abort_redirection
+from sympy.physics.units import pressure
 
-from model_co2_spe11b import ModelCCS #NEW
+from darts.physics.super.property_container import PropertyContainer
+
+#from model_geothermal import ModelGeothermal
+# from model_deadoil import ModelDeadOil
+from model_co2 import ModelCCS
 
 from darts.engines import redirect_darts_output
 
@@ -22,7 +33,7 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     if redirect_log:
         log_stream = redirect_all_output(log_filename)
 
-    redirect_darts_output('run_n.log')
+    redirect_darts_output('../run_n.log')
 
     #Assing CCS Model
     m = ModelCCS()
@@ -36,18 +47,24 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     #Initialize reservoir and properties
     m.init_reservoir()
 
+    #Check if op_num correctly assigned
+    #print(m.reservoir.mesh.op_num)
+
     m.init(output_folder=out_dir, platform=platform)
     #m.reservoir.mesh.init_grav_coef(0)
     m.save_data_to_h5(kind = 'solution')
     m.set_well_controls()
 
-    ret = m.run_simulation(out_dir)
+    ret = m.run_simulation()
     if ret != 0:
         exit(1)
 
     m.reservoir.centers_to_vtk(out_dir)
 
+    #m.reservoir.save_grdecl(m.get_arrays(ith_step=1), os.path.join(out_dir, 'res_last'))
+    
     m.print_timers()
+    #m.print_stat()
 
     if export_vtk:
         # read h5 file and write vtk
@@ -68,6 +85,8 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
                 time_data[k.replace('V  volume (m3)', 'V volume (kmol)')] = time_data[k]
                 time_data[k.replace('V  volume (m3)', 'V volume (Mt/year)')] = time_data[k] * molar_mass_co2 / 1000 / 1000000 #Mt per year
                 time_data.drop(columns=k, inplace=True)
+
+    # from add_colums_output import add_columns_time_data, add_columns_time_data_report
 
     time_data = pd.DataFrame.from_dict(m.physics.engine.time_data)
     add_columns_time_data(time_data)
@@ -92,6 +111,12 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     writer = pd.ExcelWriter(os.path.join(out_dir, 'time_data_report.xlsx'))
     time_data_report.to_excel(writer, sheet_name='time_data_report')
     writer.close()
+
+    #failed, sim_time = check_performance_local(m=m, case=case, physics_type=physics_type) #NEW, was activated
+
+    # if redirect_log:
+    #     abort_redirection(log_stream)
+    # print('Failed' if failed else 'Ok')
 
     return  time_data, time_data_report, m.idata.well_data.wells.keys(), m.well_is_inj #NEW, originalaly also failed, sim_time included
 
@@ -231,7 +256,7 @@ if __name__ == '__main__':
                     continue
                 case = case_geom + '_' + wctrl
                 out_dir = 'results_' + physics_type + '_' + case
-                base_results_dir = "results"
+                base_results_dir = "../results"
                 out_dir = os.path.join(base_results_dir, out_dir)
                 time_data, time_data_report, wells, well_is_inj = run(physics_type=physics_type, #NEW, originally failed, sim_time, were included
                                                                                         case=case, out_dir=out_dir,
@@ -240,7 +265,7 @@ if __name__ == '__main__':
                                                                                         platform=platform)
 
                 # one can read well results from pkl file to add/change well plots without re-running the model
-                pkl1_dir = '.'
+                pkl1_dir = '..'
                 pkl_fname = 'time_data.pkl'
                 pkl_report_fname = 'time_data_report.pkl'
                 time_data_list = [time_data]

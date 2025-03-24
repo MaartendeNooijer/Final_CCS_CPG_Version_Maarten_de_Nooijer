@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 #from darts.models.darts_model import DartsModel #Old
-from Adjusted_Darts_Files.darts_model import DartsModel #NEW, added output_to_vtk() function to add pressure and temperature
+from Adjusted_Darts_Files.darts_model_own import DartsModel #NEW, added output_to_vtk() function to add pressure and temperature
 from darts.tools.flux_tools import get_molar_well_rates, get_phase_volumetric_well_rates, get_mass_well_rates
 
 import numpy as np

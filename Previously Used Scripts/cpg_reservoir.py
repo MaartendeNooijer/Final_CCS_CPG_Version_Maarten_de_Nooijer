@@ -80,12 +80,14 @@ class CPG_Reservoir(ReservoirBase):
         self.permy = arrays['PERMY']
         self.permz = arrays['PERMZ']
 
+        self.poro2 = self.poro
+
         self.discr_mesh.poro = value_vector_discr(self.poro)
         self.discr_mesh.coord = value_vector_discr(self.coord)
         self.discr_mesh.zcorn = value_vector_discr(self.zcorn)
         self.discr_mesh.actnum = index_vector_discr(self.actnum)
 
-        self.discr_mesh.op_num = index_vector_discr(self.op_num) #NEW
+        # self.discr_mesh.op_num = index_vector_discr(self.op_num) #NEW
 
         self.permx_cpp = value_vector_discr(self.permx)
         self.permy_cpp = value_vector_discr(self.permy)
@@ -244,7 +246,7 @@ class CPG_Reservoir(ReservoirBase):
         self.centroids_all_cells = np.array(self.discr_mesh.centroids)
         self.actnum = np.array(self.discr_mesh.actnum, copy=False)
 
-        self.satnum = np.array(self.discr_mesh.satnum, copy=False) #NEW
+        # self.satnum = np.array(self.discr_mesh.satnum, copy=False) #NEW
 
         self.discretizer.set_permeability(self.permx_cpp, self.permy_cpp, self.permz_cpp)
 
@@ -264,7 +266,10 @@ class CPG_Reservoir(ReservoirBase):
 
         self.discretizer.set_porosity(self.discr_mesh.poro)
         self.mesh.poro = darts.engines.value_vector(self.discretizer.poro)
-        self.poro = np.array(self.discr_mesh.poro, copy=False)
+        self.poro = np.array(self.discr_mesh.poro, copy=True)
+
+        self.mesh.op_num = index_vector(self.poro2[self.poro2 != 0].astype(int).tolist())
+        self.op_num = np.array(self.poro2, copy=False)
 
         # calculate transmissibilities
         self.discretizer.calc_tpfa_transmissibilities(displaced_tags)

@@ -56,6 +56,11 @@ class FluidFlowerStruct(StructReservoir):
                         rcond[global_idx] = layer_properties[tag].rcond
                         op_num[global_idx] = layers_to_regions[layer_properties[tag].type]
 
+                        # if layers_to_regions[layer_properties[tag].type] == 6: #NEW, test if you can deactivate some layers and what happens
+                        #     ACTNUM[global_idx] = 0
+                        #     actnum[i, j, k] = 0
+
+
                         self.centroids[local_idx] = np.array([x[i], y[j] + 0.5 * dy, z[k]])
                         # self.centroids[local_idx] = np.array([x[i] + 0.5 * dx, y[j] + 0.5 * dy, z[k] + 0.5 * dz])
                         # poro[local_idx] = poro[global_idx]

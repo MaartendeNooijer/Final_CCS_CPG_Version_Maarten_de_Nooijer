@@ -44,11 +44,7 @@ class Model_CPG(CICDModel):
             # read grid and rock properties
             arrays = read_arrays(self.idata.gridfile, self.idata.propfile)
             check_arrays(arrays)
-            # if self.physics_type == 'deadoil':  # set inactive cells with small porosity (isothermal case)
-            #     arrays['ACTNUM'][arrays['PORO'] < self.idata.geom.min_poro] = 0
-            # elif self.physics_type == 'geothermal':  # process cells with small poro (thermal case)
-            #     for arr in ['PORO', 'PERMX', 'PERMY', 'PERMZ']:
-            #         arrays[arr][arrays['PORO'] < self.idata.geom.min_poro] = self.idata.geom.min_poro
+
 
         if self.idata.geom.burden_layers > 0:
             # add over- and underburden layers
@@ -60,7 +56,7 @@ class Model_CPG(CICDModel):
         self.reservoir = CPG_Reservoir(self.timer, arrays, faultfile=self.idata.faultfile, minpv=self.idata.geom.minpv) #NEW #was self.reservoir = CPG_Reservoir(self.timer, arrays, minpv=self.idata.geom.minpv)
         self.reservoir.discretize()
 
-        #beginning of deactivation to test if I can appropriately store satnum and opnum in cpg_reservoir_adjust.py file instead of here
+
         # helps reading in satnum values from the properties file and store it
         from darts.discretizer import index_vector as index_vector_discr, load_single_int_keyword
         satnum_cpp = index_vector_discr()  # self.discr_mesh.coord
@@ -69,20 +65,16 @@ class Model_CPG(CICDModel):
 
         self.reservoir.satnum = arrays['SATNUM']
 
-        #self.reservoir.satnum[:] = 1 #activate when only one region needed
+        ## activate when only one region needed
+        #self.reservoir.satnum[:] = 1
 
-        self.reservoir.op_num = self.reservoir.satnum #NEW, not sure if this is correct
+        self.reservoir.op_num = self.reservoir.satnum #NEW
 
-        # Retrieve SATNUM (facies ID) from the reservoir and store op_num values belonging to different facies
-        satnum_arr = np.array(self.reservoir.satnum,
-                              copy=False)  # don't use -1, because you get interpolation error since 0 (inactive) minus 1 gives -1, which it doesn't understand
+        self.reservoir.mesh.op_num = index_vector(self.reservoir.op_num[self.reservoir.op_num != 0].astype(int).tolist())
 
-        self.reservoir.mesh.op_num = index_vector([int(x) for x in satnum_arr] + [0, 0]) #Deactivate this part to see of mesh.op_num is created self
-
-        #Update global_data for satnum and op_num  #NEW, update satnum correct, not sure about op_num
+        #Update global_data for satnum and op_num  #NEW
         self.reservoir.global_data.update({'satnum': self.reservoir.satnum,
-                                           'op_num': self.reservoir.op_num}) #makes sure that mesh also is updated and exports satnum
-        #end of deactivation
+                                           'op_num': self.reservoir.op_num})
 
         # store modified arrrays (with burden layers) for output to grdecl
         self.reservoir.input_arrays = arrays
@@ -175,9 +167,9 @@ class Model_CPG(CICDModel):
     def well_is_inj(self, wname : str):  # determine well control by its name
         return "INJ" in wname
 
-    def do_after_step(self):
+    def do_after_step(self, ith_step, out_dir):
         # save to grdecl file after each time step
-        #self.reservoir.save_grdecl(self.get_arrays(), os.path.join(out_dir, 'res_' + str(ti+1)))
+        self.reservoir.save_grdecl(self.get_arrays_gredcl(ith_step), os.path.join(out_dir, 'res_' + str(ith_step+1)))
         self.physics.engine.report()
         #self.print_well_rate()
 
