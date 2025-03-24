@@ -204,12 +204,23 @@ if __name__ == '__main__':
     physics_list += ['ccs']
 
     cases_list = []
+    cases_list += ["case_1_50x50x40"]
+    cases_list += ["case_1_100x100x80"]
+    cases_list += ["case_1_125x125x80"]
+    cases_list += ["case_1_250x250x80"]
+    cases_list += ["case_2_50x50x40"]
+    cases_list += ["case_2_100x100x80"]
+    cases_list += ["case_2_125x125x80"]
+    cases_list += ["case_2_250x250x80"]
+    cases_list += ["case_3_50x50x40"]
+    cases_list += ["case_3_100x100x80"]
+    cases_list += ["case_3_125x125x80"]
+    cases_list += ["case_3_250x250x80"]
+
     #cases_list += ['case_40x40x10']
     #cases_list += ['20x20x10']
-    cases_list += ['grid_CCS_maarten']
-
+    #cases_list += ['grid_CCS_maarten']
     #cases_list += ['Fixing_Fault_Mult']
-
     #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX']
     #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX_2']
     #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX_3']
