@@ -207,6 +207,9 @@ if __name__ == '__main__':
     #cases_list += ['case_40x40x10']
     #cases_list += ['20x20x10']
     cases_list += ['grid_CCS_maarten']
+
+    #cases_list += ['Fixing_Fault_Mult']
+
     #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX']
     #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX_2']
     #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX_3']

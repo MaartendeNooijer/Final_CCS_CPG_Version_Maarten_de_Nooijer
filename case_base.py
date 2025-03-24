@@ -13,7 +13,7 @@ def get_case_files(case: str):
     grid_file = os.path.join(prefix, 'grid.grdecl')
     prop_file = os.path.join(prefix, 'reservoir.in')
     sch_file = os.path.join(prefix, 'sch.inc')
-    fault_file = os.path.join(prefix, 'fault_test.inc')  #NEW # Add fault file
+    fault_file = os.path.join(prefix, 'fault_mult_maarten')  #NEW # Add fault file
     assert os.path.exists(fault_file), 'Cannot open ' + fault_file #NEW
     assert os.path.exists(grid_file), 'cannot open' + grid_file
     assert os.path.exists(prop_file), 'cannot open' + prop_file
@@ -21,8 +21,8 @@ def get_case_files(case: str):
     return grid_file, prop_file, sch_file, fault_file #NEW
 
 def input_data_base(idata: InputData, case: str):
-    dt =  365.25 #365.25  # one report timestep length, [days]
-    n_time_steps = 20 #30 #was 20
+    dt = 1 #365.25 #365.25  # one report timestep length, [days]
+    n_time_steps = 1 #30 #was 20
     idata.sim.time_steps = np.zeros(n_time_steps) + dt
 
     # time stepping and convergence parameters

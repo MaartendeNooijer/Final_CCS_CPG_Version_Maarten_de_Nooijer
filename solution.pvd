@@ -2,7 +2,5 @@
 <VTKFile type="Collection" version="0.1" byte_order="LittleEndian">
 <Collection>
 <DataSet timestep="0.0" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts0.vtu" name=""/>
-<DataSet timestep="0.0" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts1.vtu" name=""/>
-<DataSet timestep="2.0" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts2.vtu" name=""/>
 </Collection>
 </VTKFile>
