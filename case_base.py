@@ -21,8 +21,8 @@ def get_case_files(case: str):
     return grid_file, prop_file, sch_file, fault_file #NEW
 
 def input_data_base(idata: InputData, case: str):
-    dt = 1 #365.25 #365.25  # one report timestep length, [days]
-    n_time_steps = 1 #30 #was 20
+    dt = 365.25 #365.25  # one report timestep length, [days]
+    n_time_steps = 15 #30 #was 20
     idata.sim.time_steps = np.zeros(n_time_steps) + dt
 
     # time stepping and convergence parameters

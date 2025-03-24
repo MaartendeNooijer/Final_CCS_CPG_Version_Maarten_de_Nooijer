@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <VTKFile type="Collection" version="0.1" byte_order="LittleEndian">
 <Collection>
-<DataSet timestep="0.0" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts0.vtu" name=""/>
+<DataSet timestep="0.0" group="" part="0" file="results\results_ccs_case_1_100x100x80_wbhp\solution_ts0.vtu" name=""/>
 </Collection>
 </VTKFile>
