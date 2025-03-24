@@ -14,6 +14,13 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     :param export_vtk:
     :return:
     '''
+
+    import os
+    from darts.engines import set_num_threads
+
+    NT = int(os.getenv("OMP_NUM_THREADS", 6))  # Default to 6 if not set
+    set_num_threads(NT)
+
     print('Test started', 'physics_type:', physics_type, 'case:', case, 'platform=', platform)
     # base_results_dir = "results"
     # out_dir = os.path.join(base_results_dir, out_dir)
