@@ -29,7 +29,9 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     if redirect_log:
         log_stream = redirect_all_output(log_filename)
 
-    redirect_darts_output('run_n.log')
+    # Assuming out_dir is already defined
+    log_path = os.path.join(out_dir, "run_n.log")
+    redirect_darts_output(log_path)
 
     #Assing CCS Model
     m = ModelCCS()
@@ -56,26 +58,26 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
 
     m.print_timers()
 
-    # if export_vtk:
-    #     # read h5 file and write vtk
-    #     m.reservoir.create_vtk_wells(output_directory=out_dir)
-    #     for ith_step in range(len(m.idata.sim.time_steps)):
-    #         m.output_to_vtk(ith_step=ith_step) #Go to this function in darts_model.py and add props_names = props_names + ['pressure', 'temperature'] after line 863 to add pressure and temperature
-
-    if export_vtk:  # for the first, last and every tenth
-        # Determine the indices for the VTK output steps
+    if export_vtk:
+        # read h5 file and write vtk
         m.reservoir.create_vtk_wells(output_directory=out_dir)
-        steps_to_export = [0]  # Add the first step (0-indexed)
+        for ith_step in range(len(m.idata.sim.time_steps)):
+            m.output_to_vtk(ith_step=ith_step) #Go to this function in darts_model.py and add props_names = props_names + ['pressure', 'temperature'] after line 863 to add pressure and temperature
 
-        # Add every fifth step in between
-        for i in range(9, len(m.idata.sim.time_steps), 10):
-            steps_to_export.append(i)
-
-        steps_to_export.append(len(m.idata.sim.time_steps) - 1)  # Add the last step
-
-        # Now generate VTK files for the selected steps
-        for ith_step in steps_to_export:
-            m.output_to_vtk(ith_step=ith_step)
+    # if export_vtk:  # for the first, last and every tenth
+    #     # Determine the indices for the VTK output steps
+    #     m.reservoir.create_vtk_wells(output_directory=out_dir)
+    #     steps_to_export = [0]  # Add the first step (0-indexed)
+    #
+    #     # Add every fifth step in between
+    #     for i in range(9, len(m.idata.sim.time_steps), 10):
+    #         steps_to_export.append(i)
+    #
+    #     steps_to_export.append(len(m.idata.sim.time_steps) - 1)  # Add the last step
+    #
+    #     # Now generate VTK files for the selected steps
+    #     for ith_step in steps_to_export:
+    #         m.output_to_vtk(ith_step=ith_step)
 
     def add_columns_time_data(time_data):
         molar_mass_co2 = 44.01 #kg/kmol
@@ -226,10 +228,14 @@ if __name__ == '__main__':
     physics_list += ['ccs']
 
     cases_list = []
+
+    cases_list += ['grid_CCS_maarten'] #Heterogeneous, contains different regions
+    #cases_list += ['grid_CCS_maarten_homogeneous'] #Homogeneous, one region assignment
+
     # cases_list += ["case_1_50x50x40"]
-    cases_list += ["case_1_100x100x80"]
-    cases_list += ["case_1_125x125x80"]
-    cases_list += ["case_1_250x250x80"]
+    # cases_list += ["case_1_100x100x80"]
+    # cases_list += ["case_1_125x125x80"]
+    # cases_list += ["case_1_250x250x80"]
     # cases_list += ["case_2_50x50x40"]
     # cases_list += ["case_2_100x100x80"]
     # cases_list += ["case_2_125x125x80"]

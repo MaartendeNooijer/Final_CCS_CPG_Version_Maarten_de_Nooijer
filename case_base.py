@@ -30,8 +30,8 @@ def input_data_base(idata: InputData, case: str):
     idata.sim.mult_ts = 2
     idata.sim.max_ts = 92
     idata.sim.runtime = 300
-    idata.sim.tol_newton = 1e-2 #was 1e-2 #Alex suggested 1e-4
-    idata.sim.tol_linear = 1e-4 #1e-5 #was 1e-4 #Alex suggested 1e-5
+    idata.sim.tol_newton = 1e-2 #1e-2 #was 1e-2 #Alex suggested 1e-4
+    idata.sim.tol_linear = 1e-4 #1e-4 #1e-5 #was 1e-4 #Alex suggested 1e-5
     # use direct linear solver:
     #idata.sim.linear_type = sim_params.linear_solver_t.cpu_superlu
 

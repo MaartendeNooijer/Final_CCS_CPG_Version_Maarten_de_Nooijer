@@ -110,17 +110,6 @@ class ModelCCS(Model_CPG):
             # **Shale (Facies 3)**
             3: Corey(nw=1.5, ng=1.5, swc=0.32, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=1.935314, pcmax=300, c2=1.5)}  # p_entry=1.935314
 
-        # facies_rel_perm = {  #checking if constant containers help
-        #     # # **Wells** ##NEW, values don't mind
-        #     0: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0, pcmax=0.1, c2=1.5),
-        #     1: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0.025602, pcmax=300,
-        #              c2=1.5),  # p_entry=0.025602
-        #     # **Overbank Sand (Facies 2)**
-        #     2: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0.025602, pcmax=300,
-        #              c2=1.5),
-        #     # **Shale (Facies 3)**
-        #     3: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0.025602, pcmax=300,
-        #              c2=1.5)}
 
         # Assign properties per facies using `add_property_region`
         for i, (region, corey_params) in enumerate(facies_rel_perm.items()): #NEW
