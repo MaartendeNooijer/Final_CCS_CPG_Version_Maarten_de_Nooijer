@@ -110,11 +110,23 @@ class ModelCCS(Model_CPG):
             # **Shale (Facies 3)**
             3: Corey(nw=1.5, ng=1.5, swc=0.32, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=1.935314, pcmax=300, c2=1.5)}  # p_entry=1.935314
 
+        # facies_rel_perm = {  #checking if constant containers help
+        #     # # **Wells** ##NEW, values don't mind
+        #     0: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0, pcmax=0.1, c2=1.5),
+        #     1: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0.025602, pcmax=300,
+        #              c2=1.5),  # p_entry=0.025602
+        #     # **Overbank Sand (Facies 2)**
+        #     2: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0.025602, pcmax=300,
+        #              c2=1.5),
+        #     # **Shale (Facies 3)**
+        #     3: Corey(nw=1.5, ng=1.5, swc=0.10, sgc=0.10, krwe=1.0, krge=1.0, labda=2., p_entry=0.025602, pcmax=300,
+        #              c2=1.5)}
+
         # Assign properties per facies using `add_property_region`
         for i, (region, corey_params) in enumerate(facies_rel_perm.items()): #NEW
 
             #Original
-            property_container = PropertyContainer(phases_name=phases, components_name=components,Mw=comp_data.Mw[:2], #NEW, was property_container = PropertyContainer(phases_name=phases, components_name=components,Mw=comp_data.Mw,
+            property_container = AlternativeContainer(phases_name=phases, components_name=components,Mw=comp_data.Mw[:2], #NEW, was property_container = PropertyContainer(phases_name=phases, components_name=components,Mw=comp_data.Mw,
                                                    temperature=temperature, min_z=self.zero/10)
 
             property_container.flash_ev = NegativeFlash(flash_params, ["PR", "AQ"], [InitialGuess.Henry_VA])
@@ -125,7 +137,7 @@ class ModelCCS(Model_CPG):
             property_container.viscosity_ev = dict([('V', Fenghour1998()),
                                                     ('Aq', Islam2012(components)), ])
 
-            property_container.enthalpy_ev = dict([('V', EoSEnthalpy(eos=pr)),('Aq', EoSEnthalpy(eos=aq)), ])
+            property_container.enthalpy_ev = dict([('V', EoSEnthalpy(eos=pr)),('Aq', EoSEnthalpy(eos=aq)),])
 
 
             property_container.conductivity_ev = dict([('V', ConstFunc(8.4)),('Aq', ConstFunc(170.)), ])
@@ -144,7 +156,8 @@ class ModelCCS(Model_CPG):
                                                "yCO2": lambda ii=i: self.physics.property_containers[ii].x[0, 1],
                                                "xH20": lambda ii=i: self.physics.property_containers[ii].x[1, 0],
                                                "yH20": lambda ii=i: self.physics.property_containers[ii].x[0, 0],
-                                               "enthV": lambda ii=i: self.physics.property_containers[ii].enthalpy[0]}
+                                               "enthV": lambda ii=i: self.physics.property_containers[ii].enthalpy[0], #was 0
+                                               "Pc": lambda ii=i: self.physics.property_containers[ii].pc[1]}
 
         return
 
@@ -208,7 +221,7 @@ class ModelCCS(Model_CPG):
         #wdata.inj = value_vector([self.zero])  # injection composition - water
         y2d = 365.25
 
-        rate_kg_year = 1e9 #0.1 Mt
+        rate_kg_year = 2e9 #0.1 Mt
         rate_kg_day = rate_kg_year/y2d
         kg_to_mol = 44.01 #kg/kmol
         rate_kmol_day = rate_kg_day/kg_to_mol
@@ -216,7 +229,7 @@ class ModelCCS(Model_CPG):
         if 'wbhp' in case:
             print("The string 'wbhp' is found in case!")
             for w in wells:
-                wdata.add_inj_bhp_control(name=w, bhp=200, comp_index=1, temperature=300)  # kmol/day | bars | K
+                wdata.add_inj_bhp_control(name=w, bhp=175, comp_index=1, temperature=300)  # kmol/day | bars | K
                 #wdata.add_prd_rate_control(time=10 * y2d, name=w, rate=0., comp_index=0, bhp_constraint=70)  # STOP WELL
         elif 'wrate' in case:
             for w in wells:
@@ -232,7 +245,7 @@ class ModelCCS(Model_CPG):
         self.idata.obl.min_z = self.idata.obl.zero
         self.idata.obl.max_z = 1 - self.idata.obl.zero
         self.idata.obl.cache = False
-        self.idata.obl.thermal = True #This sets case to non-isothermal
+        self.idata.obl.thermal = True #True #This sets case to non-isothermal
 
     def set_initial_conditions(self):
         self.temperature_initial_ = 273.15 + 76.85  # K

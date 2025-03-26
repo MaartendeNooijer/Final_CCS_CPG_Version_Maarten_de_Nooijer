@@ -3,6 +3,7 @@ from darts.tools.plot_darts import *
 from darts.tools.logging import redirect_all_output
 
 from model_co2_spe11b import ModelCCS #NEW
+#from model_co2_spe11b_Ilshat_test_environment import ModelCCS #NEW
 
 from darts.engines import redirect_darts_output
 
@@ -14,11 +15,10 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     :param export_vtk:
     :return:
     '''
-
     import os
     from darts.engines import set_num_threads
 
-    NT = int(os.getenv("OMP_NUM_THREADS", 6))  # Default to 6 if not set
+    NT = int(os.getenv("OMP_NUM_THREADS", 5))  # Default to 6 if not set
     set_num_threads(NT)
 
     print('Test started', 'physics_type:', physics_type, 'case:', case, 'platform=', platform)
@@ -61,6 +61,21 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
         m.reservoir.create_vtk_wells(output_directory=out_dir)
         for ith_step in range(len(m.idata.sim.time_steps)):
             m.output_to_vtk(ith_step=ith_step) #Go to this function in darts_model.py and add props_names = props_names + ['pressure', 'temperature'] after line 863 to add pressure and temperature
+
+    # if export_vtk:  # for the first, last and every tenth
+    #     # Determine the indices for the VTK output steps
+    #     m.reservoir.create_vtk_wells(output_directory=out_dir)
+    #     steps_to_export = [0]  # Add the first step (0-indexed)
+    #
+    #     # Add every fifth step in between
+    #     for i in range(9, len(m.idata.sim.time_steps), 10):
+    #         steps_to_export.append(i)
+    #
+    #     steps_to_export.append(len(m.idata.sim.time_steps) - 1)  # Add the last step
+    #
+    #     # Now generate VTK files for the selected steps
+    #     for ith_step in steps_to_export:
+    #         m.output_to_vtk(ith_step=ith_step)
 
     def add_columns_time_data(time_data):
         molar_mass_co2 = 44.01 #kg/kmol
@@ -211,35 +226,28 @@ if __name__ == '__main__':
     physics_list += ['ccs']
 
     cases_list = []
-    cases_list += ["case_1_50x50x40"]
-    cases_list += ["case_1_100x100x80"]
+    # cases_list += ["case_1_50x50x40"]
+    # cases_list += ["case_1_100x100x80"]
     cases_list += ["case_1_125x125x80"]
-    cases_list += ["case_1_250x250x80"]
-    cases_list += ["case_2_50x50x40"]
-    cases_list += ["case_2_100x100x80"]
-    cases_list += ["case_2_125x125x80"]
-    cases_list += ["case_2_250x250x80"]
-    cases_list += ["case_3_50x50x40"]
-    cases_list += ["case_3_100x100x80"]
-    cases_list += ["case_3_125x125x80"]
-    cases_list += ["case_3_250x250x80"]
+    # cases_list += ["case_1_250x250x80"]
+    # cases_list += ["case_2_50x50x40"]
+    # cases_list += ["case_2_100x100x80"]
+    # cases_list += ["case_2_125x125x80"]
+    # cases_list += ["case_2_250x250x80"]
+    # cases_list += ["case_3_50x50x40"]
+    # cases_list += ["case_3_100x100x80"]
+    # cases_list += ["case_3_125x125x80"]
+    # cases_list += ["case_3_250x250x80"]
 
-    #cases_list += ['case_40x40x10']
-    #cases_list += ['20x20x10']
+    #Continue here!!
+    #Change to rate, to see if that works better instead of injecting 15 mt
+    #Checking if it works if I adjust the property container with only wells, and one sand facies properties region
+
+    #cases_list += ['case_40_actnum']
+
     #cases_list += ['grid_CCS_maarten']
-    #cases_list += ['Fixing_Fault_Mult']
-    #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX']
-    #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX_2']
-    #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX_3']
-    #cases_list += ["G1_TS1_FM1_20x20x2_5"]
-    #cases_list += ["G1_TS1_FM1_25x25x2_5"]
-    # cases_list += ["G1_TS1_FM1_50x50x5"]
-    #cases_list += ["G1_TS2_FM2_20x20x2_5"]
-    #cases_list += ["G1_TS2_FM2_25x25x2_5"]
-    # cases_list += ["G1_TS2_FM2_50x50x5"]
-    #cases_list += ["G1_TS3_FM3_20x20x2_5"]
-    #cases_list += ["G1_TS3_FM3_25x25x2_5"]
-    # cases_list += ["G1_TS3_FM3_50x50x5"]
+    #cases_list += ['grid_CCS_maarten_homogeneous']
+    #cases_list += ['30x30x40_dxdydz_5m'] #C:\Users\maartendenooijer\PycharmProjects\Old_CCS_CPG_Version\meshes\
 
     well_controls = []
     #well_controls += ['wrate']

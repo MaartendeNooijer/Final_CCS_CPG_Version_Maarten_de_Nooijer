@@ -569,6 +569,7 @@ class DartsModel:
 
             self.physics.engine.well_residual_last_dt = self.physics.engine.calc_well_residual()
             self.physics.engine.n_newton_last_dt = i
+
             #  check tolerance if it converges
             if ((self.physics.engine.newton_residual_last_dt < self.params.tolerance_newton and
                  self.physics.engine.well_residual_last_dt < self.params.well_tolerance_coefficient * self.params.tolerance_newton) or
