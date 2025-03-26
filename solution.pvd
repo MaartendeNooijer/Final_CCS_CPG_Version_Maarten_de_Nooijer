@@ -2,24 +2,7 @@
 <VTKFile type="Collection" version="0.1" byte_order="LittleEndian">
 <Collection>
 <DataSet timestep="0.0" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts0.vtu" name=""/>
-<DataSet timestep="0.0" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts1.vtu" name=""/>
-<DataSet timestep="365.25" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts2.vtu" name=""/>
-<DataSet timestep="730.5" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts3.vtu" name=""/>
-<DataSet timestep="1095.75" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts4.vtu" name=""/>
-<DataSet timestep="1461.0" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts5.vtu" name=""/>
-<DataSet timestep="1826.25" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts6.vtu" name=""/>
-<DataSet timestep="2191.5" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts7.vtu" name=""/>
-<DataSet timestep="2556.75" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts8.vtu" name=""/>
 <DataSet timestep="2922.0" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts9.vtu" name=""/>
-<DataSet timestep="3287.25" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts10.vtu" name=""/>
-<DataSet timestep="3652.5" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts11.vtu" name=""/>
-<DataSet timestep="4017.75" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts12.vtu" name=""/>
-<DataSet timestep="4383.0" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts13.vtu" name=""/>
-<DataSet timestep="4748.25" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts14.vtu" name=""/>
-<DataSet timestep="5113.5" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts15.vtu" name=""/>
-<DataSet timestep="5478.75" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts16.vtu" name=""/>
-<DataSet timestep="5844.0" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts17.vtu" name=""/>
-<DataSet timestep="6209.25" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts18.vtu" name=""/>
 <DataSet timestep="6574.5" group="" part="0" file="results\results_ccs_grid_CCS_maarten_wbhp\solution_ts19.vtu" name=""/>
 </Collection>
 </VTKFile>

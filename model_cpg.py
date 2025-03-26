@@ -169,7 +169,7 @@ class Model_CPG(CICDModel):
 
     def do_after_step(self, ith_step, out_dir):
         # save to grdecl file after each time step
-        self.reservoir.save_grdecl(self.get_arrays_gredcl(ith_step), os.path.join(out_dir, 'res_' + str(ith_step+1)))
+        #self.reservoir.save_grdecl(self.get_arrays_gredcl(ith_step), os.path.join(out_dir, 'res_' + str(ith_step+1)))
         self.physics.engine.report()
         #self.print_well_rate()
 
