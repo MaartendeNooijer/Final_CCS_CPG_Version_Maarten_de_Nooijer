@@ -33,11 +33,11 @@ def extract_elapsed_time(log_path, output_path):
         print(f"Error: {e}")
 
 def run(physics_type: str, case: str, out_dir: str, export_vtk=True, redirect_log=True, platform='cpu'):
-    from darts.engines import set_num_threads
-    import pandas as pd
+    #from darts.engines import set_num_threads
+    #import pandas as pd
 
-    NT = int(os.getenv("OMP_NUM_THREADS", 5))
-    set_num_threads(NT)
+    # NT = int(os.getenv("OMP_NUM_THREADS", 5))
+    # set_num_threads(NT)
 
     print('Test started', 'physics_type:', physics_type, 'case:', case, 'platform=', platform)
     os.makedirs(out_dir, exist_ok=True)
