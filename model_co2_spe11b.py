@@ -150,6 +150,7 @@ class ModelCCS(Model_CPG):
 
         return
 
+
     def get_arrays(self, ith_step):
         '''
         :return: dictionary of current unknown arrays (p, T)
@@ -218,11 +219,11 @@ class ModelCCS(Model_CPG):
         if 'wbhp' in case:
             print("The string 'wbhp' is found in case!")
             for w in wells:
-                wdata.add_inj_bhp_control(name=w, bhp=175, comp_index=1, temperature=300)  # kmol/day | bars | K
+                wdata.add_inj_bhp_control(name=w, bhp=172, comp_index=1, temperature=300)  # kmol/day | bars | K
                 #wdata.add_prd_rate_control(time=10 * y2d, name=w, rate=0., comp_index=0, bhp_constraint=70)  # STOP WELL
         elif 'wrate' in case:
             for w in wells:
-                wdata.add_inj_rate_control(name=w, rate=rate_kmol_day, comp_index=1, bhp_constraint=200, temperature=300) #rate=5e5/8 is approximately 1 Mt per year #was rate = 6e6 # kmol/day | bars | K
+                wdata.add_inj_rate_control(name=w, rate=rate_kmol_day, comp_index=1, bhp_constraint=190, temperature=300) #rate=5e5/8 is approximately 1 Mt per year #was rate = 6e6 # kmol/day | bars | K
                 #wdata.add_prd_rate_control(time=10 * y2d, name=w, rate=0., comp_index=0, bhp_constraint=70)  # STOP WELL
 
         self.idata.obl.n_points = 1000

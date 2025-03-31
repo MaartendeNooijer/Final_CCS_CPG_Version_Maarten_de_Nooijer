@@ -1,19 +1,9 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import time
-import os, sys
-from darts.engines import value_vector, index_vector
-from darts.engines import redirect_darts_output, value_vector
+import os
 from darts.tools.plot_darts import *
-from darts.tools.logging import redirect_all_output, abort_redirection
-from sympy.physics.units import pressure
+from darts.tools.logging import redirect_all_output
 
-from darts.physics.super.property_container import PropertyContainer
-
-#from model_geothermal import ModelGeothermal
-# from model_deadoil import ModelDeadOil
-from model_co2 import ModelCCS
+from model_co2_spe11b import ModelCCS #NEW
+#from model_co2_spe11b_Ilshat_test_environment import ModelCCS #NEW
 
 from darts.engines import redirect_darts_output
 
@@ -25,6 +15,12 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     :param export_vtk:
     :return:
     '''
+    import os
+    from darts.engines import set_num_threads
+
+    NT = int(os.getenv("OMP_NUM_THREADS", 5))  # Default to 6 if not set
+    set_num_threads(NT)
+
     print('Test started', 'physics_type:', physics_type, 'case:', case, 'platform=', platform)
     # base_results_dir = "results"
     # out_dir = os.path.join(base_results_dir, out_dir)
@@ -33,7 +29,9 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     if redirect_log:
         log_stream = redirect_all_output(log_filename)
 
-    redirect_darts_output('../run_n.log')
+    # Assuming out_dir is already defined
+    log_path = os.path.join(out_dir, "run_n.log")
+    redirect_darts_output(log_path)
 
     #Assing CCS Model
     m = ModelCCS()
@@ -47,30 +45,39 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     #Initialize reservoir and properties
     m.init_reservoir()
 
-    #Check if op_num correctly assigned
-    #print(m.reservoir.mesh.op_num)
-
     m.init(output_folder=out_dir, platform=platform)
     #m.reservoir.mesh.init_grav_coef(0)
     m.save_data_to_h5(kind = 'solution')
     m.set_well_controls()
 
-    ret = m.run_simulation()
+    ret = m.run_simulation(out_dir)
     if ret != 0:
         exit(1)
 
     m.reservoir.centers_to_vtk(out_dir)
 
-    #m.reservoir.save_grdecl(m.get_arrays(ith_step=1), os.path.join(out_dir, 'res_last'))
-    
     m.print_timers()
-    #m.print_stat()
 
     if export_vtk:
         # read h5 file and write vtk
         m.reservoir.create_vtk_wells(output_directory=out_dir)
         for ith_step in range(len(m.idata.sim.time_steps)):
             m.output_to_vtk(ith_step=ith_step) #Go to this function in darts_model.py and add props_names = props_names + ['pressure', 'temperature'] after line 863 to add pressure and temperature
+
+    if export_vtk:  # for the first, last and every tenth
+        # Determine the indices for the VTK output steps
+        m.reservoir.create_vtk_wells(output_directory=out_dir)
+        steps_to_export = [0]  # Add the first step (0-indexed)
+
+        # Add every fifth step in between
+        for i in range(9, len(m.idata.sim.time_steps), 10):
+            steps_to_export.append(i)
+
+        steps_to_export.append(len(m.idata.sim.time_steps) - 1)  # Add the last step
+
+        # Now generate VTK files for the selected steps
+        for ith_step in steps_to_export:
+            m.output_to_vtk(ith_step=ith_step)
 
     def add_columns_time_data(time_data):
         molar_mass_co2 = 44.01 #kg/kmol
@@ -85,8 +92,6 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
                 time_data[k.replace('V  volume (m3)', 'V volume (kmol)')] = time_data[k]
                 time_data[k.replace('V  volume (m3)', 'V volume (Mt/year)')] = time_data[k] * molar_mass_co2 / 1000 / 1000000 #Mt per year
                 time_data.drop(columns=k, inplace=True)
-
-    # from add_colums_output import add_columns_time_data, add_columns_time_data_report
 
     time_data = pd.DataFrame.from_dict(m.physics.engine.time_data)
     add_columns_time_data(time_data)
@@ -111,12 +116,6 @@ def run(physics_type : str, case: str, out_dir: str, export_vtk=True, redirect_l
     writer = pd.ExcelWriter(os.path.join(out_dir, 'time_data_report.xlsx'))
     time_data_report.to_excel(writer, sheet_name='time_data_report')
     writer.close()
-
-    #failed, sim_time = check_performance_local(m=m, case=case, physics_type=physics_type) #NEW, was activated
-
-    # if redirect_log:
-    #     abort_redirection(log_stream)
-    # print('Failed' if failed else 'Ok')
 
     return  time_data, time_data_report, m.idata.well_data.wells.keys(), m.well_is_inj #NEW, originalaly also failed, sim_time included
 
@@ -229,21 +228,32 @@ if __name__ == '__main__':
     physics_list += ['ccs']
 
     cases_list = []
-    #cases_list += ['case_40x40x10']
-    #cases_list += ['20x20x10']
-    cases_list += ['grid_CCS_maarten']
-    #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX']
-    #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX_2']
-    #cases_list += ['case_test_own_FM3_CO1_G1_TS1_PIX_3']
-    #cases_list += ["G1_TS1_FM1_20x20x2_5"]
-    #cases_list += ["G1_TS1_FM1_25x25x2_5"]
-    # cases_list += ["G1_TS1_FM1_50x50x5"]
-    #cases_list += ["G1_TS2_FM2_20x20x2_5"]
-    #cases_list += ["G1_TS2_FM2_25x25x2_5"]
-    # cases_list += ["G1_TS2_FM2_50x50x5"]
-    #cases_list += ["G1_TS3_FM3_20x20x2_5"]
-    #cases_list += ["G1_TS3_FM3_25x25x2_5"]
-    # cases_list += ["G1_TS3_FM3_50x50x5"]
+
+    #cases_list += ['grid_CCS_maarten'] #Heterogeneous, contains different regions
+    cases_list += ['grid_CCS_maarten_homogeneous'] #Homogeneous, one region assignment
+
+    #cases_list += ["case_1_50x50x40"]
+    #cases_list += ["case_1_100x100x80"]
+    # cases_list += ["case_1_125x125x80"]
+    # cases_list += ["case_1_250x250x80"]
+    #cases_list += ["case_2_50x50x40"]
+    # cases_list += ["case_2_100x100x80"]
+    # cases_list += ["case_2_125x125x80"]
+    #cases_list += ["case_2_250x250x80"]
+    #cases_list += ["case_3_50x50x40"]
+    #cases_list += ["case_3_100x100x80"]
+    #cases_list += ["case_3_125x125x80"]
+    #cases_list += ["case_3_250x250x80"]
+
+    #Continue here!!
+    #Change to rate, to see if that works better instead of injecting 15 mt
+    #Checking if it works if I adjust the property container with only wells, and one sand facies properties region
+
+    #cases_list += ['case_40_actnum']
+
+    #cases_list += ['grid_CCS_maarten']
+    #cases_list += ['grid_CCS_maarten_homogeneous']
+    #cases_list += ['30x30x40_dxdydz_5m'] #C:\Users\maartendenooijer\PycharmProjects\Old_CCS_CPG_Version\meshes\
 
     well_controls = []
     #well_controls += ['wrate']
