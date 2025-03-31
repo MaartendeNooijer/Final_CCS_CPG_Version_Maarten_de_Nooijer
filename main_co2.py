@@ -39,7 +39,7 @@ def run(physics_type: str, case: str, out_dir: str, export_vtk=True, redirect_lo
     # NT = int(os.getenv("OMP_NUM_THREADS", 5))
     # set_num_threads(NT)
     from darts.engines import set_gpu_device
-    set_gpu_device(0)  # Ensure the GPU is set to index 0
+    set_gpu_device(1)  # Ensure the GPU is set to index 0
     print('Platform =', platform)
     print('Test started', 'physics_type:', physics_type, 'case:', case, 'platform=', platform)
     os.makedirs(out_dir, exist_ok=True)
