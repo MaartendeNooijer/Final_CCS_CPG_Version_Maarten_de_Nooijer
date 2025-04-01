@@ -16,6 +16,7 @@ from darts.physics.properties.eos_properties import EoSDensity, EoSEnthalpy
 from dartsflash.libflash import NegativeFlash
 from dartsflash.libflash import CubicEoS, AQEoS, FlashParams, InitialGuess
 from dartsflash.components import CompData
+# from model_cpg import Model_CPG, fmt
 from model_cpg import Model_CPG, fmt
 
 from dataclasses import dataclass, field
@@ -93,7 +94,7 @@ class ModelCCS(Model_CPG):
             min_t=self.idata.obl.min_t,
             max_t=self.idata.obl.max_t,
             thermal=self.idata.obl.thermal,
-            cache=self.idata.obl.cache
+            cache= True #self.idata.obl.cache
         )
 
         self.physics.n_axes_points[0] = 101  # sets OBL points for pressure, From SPE11b

@@ -4,6 +4,8 @@ import os
 #Original
 #from darts.reservoirs.cpg_reservoir import CPG_Reservoir, save_array, read_arrays, check_arrays, make_burden_layers, make_full_cube
 #NEW
+
+# from Adjusted_Darts_Files.cpg_reservoir import CPG_Reservoir, save_array, read_arrays, check_arrays, make_burden_layers, make_full_cube
 from Adjusted_Darts_Files.cpg_reservoir import CPG_Reservoir, save_array, read_arrays, check_arrays, make_burden_layers, make_full_cube
 
 from darts.discretizer import load_single_float_keyword
