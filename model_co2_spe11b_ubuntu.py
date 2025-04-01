@@ -220,7 +220,7 @@ class ModelCCS(Model_CPG):
         if 'wbhp' in case:
             print("The string 'wbhp' is found in case!")
             for w in wells:
-                wdata.add_inj_bhp_control(name=w, bhp=172, comp_index=1, temperature=300)  # kmol/day | bars | K
+                wdata.add_inj_bhp_control(name=w, bhp=165, comp_index=1, temperature=300)  # kmol/day | bars | K
                 #wdata.add_prd_rate_control(time=10 * y2d, name=w, rate=0., comp_index=0, bhp_constraint=70)  # STOP WELL
         elif 'wrate' in case:
             for w in wells:
