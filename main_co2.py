@@ -178,13 +178,13 @@ if __name__ == '__main__':
 
     physics_list = ['ccs']
     cases_list = []
-    cases_list += ['grid_CCS_maarten'] #Heterogeneous, contains different regions
+    #cases_list += ['grid_CCS_maarten'] #Heterogeneous, contains different regions
     #cases_list += ['grid_CCS_maarten_homogeneous']  # Homogeneous, one region assignment
 
     # cases_list += ["case_1_50x50x40"]
     # cases_list += ["case_1_100x100x80"]
     # cases_list += ["case_1_125x125x80"]
-    # cases_list += ["case_1_250x250x80"]
+    cases_list += ["case_1_250x250x80"]
     # cases_list += ["case_2_50x50x40"]
     # cases_list += ["case_2_100x100x80"]
     # cases_list += ["case_2_125x125x80"]
@@ -198,7 +198,7 @@ if __name__ == '__main__':
     well_controls +=  ['wbhp']
     #well_controls += ['rate']
 
-    run_tag = "results_withoutwellregion"
+    run_tag = "res_check"
 
     for physics_type in physics_list:
         for case_geom in cases_list:
