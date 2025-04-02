@@ -36,8 +36,8 @@ def run(physics_type: str, case: str, out_dir: str, export_vtk=True, redirect_lo
     #from darts.engines import set_num_threads
     #import pandas as pd
 
-    # NT = int(os.getenv("OMP_NUM_THREADS", 5))
-    # set_num_threads(NT)
+    NT = int(os.getenv("OMP_NUM_THREADS", 5))
+    set_num_threads(NT)
     # from darts.engines import set_gpu_device
     # set_gpu_device(0)  # Ensure the GPU is set to index 0
     print('Platform =', platform)
